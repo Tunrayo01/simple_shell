@@ -1,83 +1,72 @@
-/* the below file is more of part of a uttility file to shell program*/
-#include "main.h"
+#include "my_shell.h"
 
 /**
- * active - returns true if shell is interactive mode
- * @infos:pointer to the info_t structure
+ * is_shell_active - checks if the shell is in interactive mode
+ * @info: Pointer to the ShellInfo structure
  *
- * this fucntion checks if the shell is running in the interactive mode
  * Return: 1 if interactive mode, 0 otherwise
  */
-int active(info_t *infos)
+int is_shell_active(ShellInfo_t *info)
 {
-	return (isatty(STDIN_FILENO) && infos->readfd <= 2);
+	return (isatty(STDIN_FILENO) && info->read_file_descriptor <= 2);
 }
 
 /**
- * _is_delimeter - checks if character is a delimeter
- * @x: the char to check
- * @delim: the delimeter string
+ * is_delimiter - checks if a character is a delimiter
+ * @character: The character to check
+ * @delimiters: The string of delimiters
  *
- * this function checks if the character 'x' is a delimeter by comparing it
- * with the characters in the 'delim'string.
- * Return: 1 if 'x' true, 0 if false
+ * Return: 1 if the character is a delimiter, 0 otherwise
  */
-int _is_delimeter(char x, char *delim)
+int is_delimiter(char character, char *delimiters)
 {
-	while (*delim)
-		if (*delim++ == x)
+	while (*delimiters)
+		if (*delimiters++ == character)
 			return (1);
 	return (0);
 }
 
 /**
- *_is_alpha_char - checks for alphabetic character
- *@x: The character to check
+ * is_alpha_character - checks if a character is alphabetic
+ * @character: The character to check
  *
- * this fuction checks if 'x' is an alphabet(A-Z or a-z)
- *Return: 1 if x is alphabetic, 0 otherwise
+ * Return: 1 if the character is alphabetic, 0 otherwise
  */
-
-int _is_alpha_char(int x)
+int is_alpha_character(int character)
 {
-	if ((x >= 'a' && x <= 'z') || (x >= 'A' && x <= 'Z'))
+	if ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z'))
 		return (1);
 	else
 		return (0);
 }
 
 /**
- *_atoi - converts a string to an integer
- *@r: the string to be converted
+ * string_to_integer - converts a string to an integer
+ * @str: The string to be converted
  *
- * the function coverts a string to an integer
- *Return: 0 if no numbers in string, converted number otherwise
+ * Return: 0 if no numbers in the string, the converted number otherwise
  */
-
-int _atoi(char *r)
+int string_to_integer(char *str)
 {
-	int a, sign = 1, flag = 0, output;
-	unsigned int result = 0;
+	int i, sign = 1, flag = 0, result;
+	unsigned int output = 0;
 
-	for (a = 0;  r[a] != '\0' && flag != 2; a++)
+	for (i = 0; str[i] != '\0' && flag != 2; i++)
 	{
-		if (r[a] == '-')
+		if (str[i] == '-')
 			sign *= -1;
 
-		if (r[a] >= '0' && r[a] <= '9')
+		if (str[i] >= '0' && str[i] <= '9')
 		{
 			flag = 1;
-			result *= 10;
-			result += (r[a] - '0');
+			output *= 10;
+			output += (str[i] - '0');
 		}
 		else if (flag == 1)
 			flag = 2;
 	}
 
-	if (sign == -1)
-		output = -result;
-	else
-		output = result;
+	result = (sign == -1) ? -output : output;
 
-	return (output);
+	return (result);
 }

@@ -1,52 +1,50 @@
-#include "main.h" /* main library of the header files */
+#include "my_shell.h"
 
 /**
- * main - entry point
- * @bc: arg count
- * @bv: arg vector
+ * main - Entry point for the shell program
+ * @argc: Argument count
+ * @argv: Argument vector
  *
- * Return: 0 , 1 for error
+ * Return: 0 on success, 1 on error
  */
 
-int main(int bc, char **bv)
+int main(int argc, char **argv)
 {
-	/* Initialize info_t structure*/
+	ShellInfo_t shell_info[] = { SHELL_INFO_INIT };
 
-	info_t info[] = { INFO_INIT };
+	int file_descriptor = 2;
 
-	int fd = 2;
+	asm ("mov %1, %0\n\t"
+		 "add $3, %0"
+		: "=r" (file_descriptor)
+		: "r" (file_descriptor));
 
-	asm ("mov %1, %0\n\t"/* Inline assembly to modify 'fd'*/
-
-		"add $3, %0"
-		: "=r" (fd)
-		: "r" (fd));
-	if (bc == 2)
+	if (argc == 2)
 	{
-/* Open the file specified in the command-line argument*/
-		fd = open(bv[1], O_RDONLY);
-		if (fd == -1)
+		file_descriptor = open(argv[1], O_RDONLY);
+		if (file_descriptor == -1)
 		{
 			if (errno == EACCES)
 				exit(126);
 			if (errno == ENOENT)
 			{
-				_eputs(bv[0]);
-				_eputs(": 0: Can't open ");
-				_eputs(bv[1]);
-				_eputchar('\n');
-				_eputchar(BUF_FLUSH);
+				print_error_message(argv[0]);
+				print_error_message(": 0: Can't open ");
+				print_error_message(argv[1]);
+				put_char('\n');
+				put_char(BUFFER_FLUSH);
 				exit(127);
 			}
+
 			return (EXIT_FAILURE);
 		}
-/*  Set 'readfd' in the 'info' structure to the opened file descriptor*/
-		info->readfd = fd;
-	}
-	/* Perform shell-related operation*/
-	put_env_list(info);
-	read_history(info);
-	hsh(info, bv);
-	return (EXIT_SUCCESS);
 
+		shell_info->read_file_descriptor = file_descriptor;
+	}
+
+	put_env_list(shell_info);
+	read_history(shell_info);
+	shell(shell_info, argv);
+	return (EXIT_SUCCESS);
 }
+

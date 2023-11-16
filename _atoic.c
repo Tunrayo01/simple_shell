@@ -1,103 +1,102 @@
-#include "main.h"
+#include "my_shell.h"
 
 /**
- * **parse - splits a string into words
- * @str: the input string to be split
- * @e: the delimeter string used for spliting
- *
- * this function splits the input string 'str' into an array of words based on
- * provided delimeter string 'e'. it counts the number of words in 'str' and
- * allocates memory for an array of strings to hold these words. each word is
- * stored as a seperate string in the returned array.
- *
- * Return: a pointer to an array of strings, or NULL on failure
+ * parse_string - splits a string into words using a specified delimiter
+ * @input_str: the input string
+ * @delimiter: the delimiter string
+ *Return: a pointer to an array of strings, or NULL on failure
  */
-
-char **parse(char *str, char *e)
+char **parse_string(char *input_str, char *delimiter)
 {
-	int a, b, c, d, numwords = 0;
-	char **r;
+	int i, j, k, m, num_words = 0;
+	char **result;
 
-	if (str == NULL || str[0] == 0)
+	if (input_str == NULL || input_str[0] == '\0')
 		return (NULL);
-	if (!e)
-		e = " ";
-	for (a = 0; str[a] != '\0'; a++)
-		if (!_delimeter(str[a], e) && (_delimeter(str[a + 1], e) || !str[a + 1]))
-			numwords++;
+	if (!delimiter)
+		delimiter = " ";
+	for (i = 0; input_str[i] != '\0'; i++)
+		if (!_is_delimiter(input_str[i], delimiter) && (_is_delimiter
+					(input_str[i + 1], delimiter) || !input_str[i + 1]))
+			num_words++;
+	if (num_words == 0)
+		return (NULL);
+	result = malloc((1 + num_words) * sizeof(char *));
+	if (!result)
+		return (NULL);
 
-	if (numwords == 0)
-		return (NULL);
-	r = malloc((1 + numwords) * sizeof(char *));
-	if (!r)
-		return (NULL);
-	for (a = 0, b = 0; b < numwords; b++)
+	for (i = 0, j = 0; j < num_words; j++)
 	{
-		while (_delimeter(str[a], e))
-			a++;
-		c = 0;
-		while (!_delimeter(str[a + c], e) && str[a + c])
-			c++;
-		r[b] = malloc((c + 1) * sizeof(char));
-		if (!r[b])
+		while (_is_delimiter(input_str[i], delimiter))
+			i++;
+
+		k = 0;
+		while (!_is_delimiter(input_str[i + k], delimiter) && input_str[i + k])
+			k++;
+		result[j] = malloc((k + 1) * sizeof(char));
+		if (!result[j])
 		{
-			for (c = 0; c < b; c++)
-				free(r[c]);
-			free(r);
+			for (k = 0; k < j; k++)
+				free(result[k]);
+			free(result);
 			return (NULL);
 		}
-		for (d = 0; d < c; d++)
-			r[b][d] = str[a++];
-		r[b][d] = 0;
+		for (m = 0; m < k; m++)
+			result[j][m] = input_str[i++];
+
+		result[j][m] = '\0';
 	}
-	r[b] = NULL;
-	return (r);
+	result[j] = NULL;
+	return (result);
 }
 
 /**
- * **strtow2 - splits a string into words
- * @str: the input string to be split
- * @e: the delimeter charater used for splitting
+ * string_to_words - splits a string into words using a specified delimiter
+ * @input_str: the input string
+ * @delimiter: the delimiter character
  *
- * this fuction split the input string into an array based the
- * provided delimeter allocates memory.
  * Return: a pointer to an array of strings, or NULL on failure
  */
-char **strtow2(char *str, char e)
+char **string_to_words(char *input_str, char delimiter)
 {
-	int a, b, c, d, numwords = 0;
-	char **r;
+	int i, j, k, m, num_words = 0;
+	char **result;
 
-	if (str == NULL || str[0] == 0)
+	if (input_str == NULL || input_str[0] == '\0')
 		return (NULL);
-	for (a = 0; str[a] != '\0'; a++)/* count the no of words in str on 'e'*/
-		if ((str[a] != e && str[a + 1] == e) ||
-		    (str[a] != e && !str[a + 1]) || str[a + 1] == e)
-			numwords++;
-	if (numwords == 0)
+	for (i = 0; input_str[i] != '\0'; i++)
+		if ((input_str[i] != delimiter && input_str[i + 1] == delimiter) ||
+			(input_str[i] != delimiter && !input_str[i + 1]) ||
+			input_str[i + 1] == delimiter)
+			num_words++;
+		if (num_words == 0)
+			return (NULL);
+		result = malloc((1 + num_words) * sizeof(char *));
+	if (!result)
 		return (NULL);
-	r = malloc((1 + numwords) * sizeof(char *));/* allocates memory */
-	if (!r)
-		return (NULL);
-	for (a = 0, b = 0; b < numwords; b++)
+	for (i = 0, j = 0; j < num_words; j++)
 	{
-		while (str[a] == e && str[b] != e)/* skip leading delimeter xters*/
-			a++;
-		c = 0;
-		while (str[a + c] != e && str[a + c] && str[a + c] != e)/*count xters*/
-			c++;
-		r[b] = malloc((c + 1) * sizeof(char));
-		if (!r[b])
+		while (input_str[i] == delimiter && input_str[i] != delimiter)
+			i++;
+
+		k = 0;
+		while (input_str[i + k] != delimiter && input_str[i + k] &&
+				input_str[i + k] != delimiter)
+			k++;
+
+		result[j] = malloc((k + 1) * sizeof(char));
+		if (!result[j])
 		{
-			for (c = 0; c < b; c++)
-				free(r[c]);
-			free(r);
+			for (k = 0; k < j; k++)
+				free(result[k]);
+			free(result);
 			return (NULL);
 		}
-		for (d = 0; d < c; d++)
-			r[b][d] = str[a++];
-		r[b][d] = 0;
+		for (m = 0; m < k; m++)
+			result[j][m] = input_str[i++];
+
+		result[j][m] = '\0';
 	}
-	r[b] = NULL;
-	return (r);
+	result[j] = NULL;
+	return (result);
 }

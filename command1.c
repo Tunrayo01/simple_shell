@@ -1,81 +1,82 @@
-/* the concluding part of command line in shell program*/
-#include "main.h"
+#include "my_shell.h"
 
 /**
- * _my_history - displays the history list
- *              with line numbers, starting at 0.
- * @infos: Structure containing potential arguments. Used to maintain
- *        constant function prototype.
- *  Return: Always 0
+ * display_history - Displays the history list with line numbers.
+ * @info: Shell information structure.
+ * Return: Always 0.
  */
-int _my_history(info_t *infos)
+int display_history(shellInfo_t *info)
 {
-	print_list(infos->history);
+	print_list(info->history);
 	return (0);
 }
 
 /**
- * unsetalias - sets alias to string
- * @infos: parameter struct
- * @estr: the string alias to unset
+ * remove_alias - Removes an alias from the alias list.
+ * @info: Shell information structure.
+ * @alias_str: The string representing the alias.
  *
- * unset alias by removing it from alias list
- * Return: Always 0 on success, 1 on error
+ * Return: 0 on success, 1 on error.
  */
-int unsetalias(info_t *infos, char *estr)
+int remove_alias(shellInfo_t *info, char *alias_str)
 {
-	char *q, e;
-	int rete;
+	char *equal_sign, temp;
+	int ret;
 
-	q = _strchr(estr, '=');
-	if (!q)
+	equal_sign = _strchr(alias_str, '=');
+	if (!equal_sign)
 		return (1);
-	e = *q;
-	*q = 0;
-	rete = delete_node_at_index(&(infos->alias),
-		get_node_index(infos->alias, node_starts_with(infos->alias, estr, -1)));
-	*q = e;
-	return (rete);
+
+		temp = *equal_sign;
+		*equal_sign = 0;
+
+	ret = delete_node_at_index(&(info->alias),
+		get_node_index(info->alias, node_starts_with
+			(info->alias, alias_str, -1)));
+
+	*equal_sign = temp;
+	return (ret);
 }
 
 /**
- * setalias - sets alias to string
- * @infos: parameter struct
- * @estr: the string alias
+ * set_alias - Sets an alias in the alias list.
+ * @info: Shell information structure.
+ * @alias_str: The string representing the alias.
  *
- * Return: Always 0 on success, 1 on error
+ * Return: 0 on success, 1 on error.
  */
-int setalias(info_t *infos, char *estr)
+int set_alias(shellInfo_t *info, char *alias_str)
 {
-	char *q;
+	char *equal_sign;
 
-	q = _strchr(estr, '=');
-	if (!q)
+	equal_sign = _strchr(alias_str, '=');
+	if (!equal_sign)
 		return (1);
-	if (!*++q)
-		return (unsetalias(infos, estr));
 
-	unsetalias(infos, estr);
-	return (add_node_end(&(infos->alias), estr, 0) == NULL);
+	if (!*++equal_sign)
+		return remove_alias(info, alias_str);
+
+	remove_alias(info, alias_str);
+	return (add_node_end(&(info->alias), alias_str, 0) == NULL);
 }
 
 /**
- * printalias - prints an alias string
- * @node: the alias node
+ * print_alias - Prints an alias string.
+ * @node: Alias node.
  *
- * Return: Always 0 on success, 1 on error
+ * Return: 0 on success, 1 on error.
  */
-int printalias(list_t *node)
+int print_alias(StringList_t *node)
 {
-	char *q = NULL, *b = NULL;
+	char *equal_sign = NULL, *alias = NULL;
 
 	if (node)
 	{
-		q = _strchr(node->str, '=');
-		for (b = node->str; b <= q; b++)
-			_putchar(*b);
-		_putchar('\'');
-		_puts(q + 1);
+		equal_sign = _strchr(node->str, '=');
+		for (alias = node->str; alias <= equal_sign; alias++)
+			put_char(*alias);
+		put_char('\'');
+		_puts(equal_sign + 1);
 		_puts("'\n");
 		return (0);
 	}
@@ -83,35 +84,38 @@ int printalias(list_t *node)
 }
 
 /**
- * _my_alias - mimics the alias builtin (man alias)
- * @infos: Structure containing potential arguments. Used to maintain
- *          constant function prototype.
- *  Return: Always 0
+ * manage_alias - Manages aliases, either displaying existing aliases
+ *                or setting new ones based on command arguments.
+ * @info: Shell information structure.
+ *
+ * Return: Always 0.
  */
-int _my_alias(info_t *infos)
+int manage_alias(shellInfo_t *info)
 {
-	int a = 0;
-	char *q = NULL;
-	list_t *node = NULL;
+	int i = 0;
+	char *equal_sign = NULL;
+	StringList_t *node = NULL;
 
-	if (infos->argc == 1)
+	if (info->argument_count == 1)
 	{
-		node = infos->alias;
+		node = info->alias;
 		while (node)
 		{
-			printalias(node);
+			print_alias(node);
 			node = node->next;
 		}
 		return (0);
 	}
-	for (a = 1; infos->argv[a]; a++)
+
+	for (i = 1; info->argv[i]; i++)
 	{
-		q = _strchr(infos->argv[a], '=');
-		if (q)
-			setalias(infos, infos->argv[a]);
+		equal_sign = _strchr(info->argv[i], '=');
+		if (equal_sign)
+			set_alias(info, info->argv[i]);
 		else
-			printalias(node_starts_with(infos->alias, infos->argv[a], '='));
+			print_alias(node_starts_with(info->alias, info->argv[i], '='));
 	}
 
 	return (0);
 }
+

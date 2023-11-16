@@ -1,162 +1,153 @@
-#include "main.h"
+#include "my_shell.h"
 
 /**
- * get_user_history_file - Get the file path for storing user's shell history.
- * @user_info: Parameter struct containing user-specific information.
+ * get_history_file - Get the history file path.
+ * @info: Pointer to the parameter struct.
  *
- * This function constructs and returns the file path for storing the user's
- * shell history.
- *
- * Return: Allocated string containing the history file path or NULL on
- * failure.
+ * Return: Allocated string containing the history file path.
  */
-char *get_user_history_file(info_t *user_info)
+char *get_history_file(info_t *info)
 {
-	char *path_buffer, *user_home;
+	char *buf, *dir;
 
-	user_home = get_env(user_info, "HOME=");
-	if (!user_home)
+	dir = get_env(info, "HOME=");
+	if (!dir)
 		return (NULL);
-	path_buffer = malloc(sizeof(char) * (_strlen(user_home) +
-				_strlen(HIST_FILE) + 2));
-	if (!path_buffer)
+
+	buf = malloc(sizeof(char) * (_strlen(dir) + _strlen(HIST_FILE) + 2));
+	if (!buf)
 		return (NULL);
-	path_buffer[0] = 0;
-	_strcpy(path_buffer, user_home);
-	_strcat(path_buffer, "/");
-	_strcat(path_buffer, HIST_FILE);
-	return (path_buffer);
+
+	buf[0] = '\0';
+	_strcpy(buf, dir);
+	_strcat(buf, "/");
+	_strcat(buf, HIST_FILE);
+
+	return (buf);
 }
 
 /**
- * write_user_history - Write the user's shell history to a file.
- * @user_info: Parameter struct containing user-specific information.
+ * write_history - Write the command history to a file.
+ * @info: Pointer to the parameter struct.
  *
- * This function creates a file or appends to an existing
- * history file and writes
- * the user's shell history to it.
- *
- * Return: 1 on success, -1 on failure.
+ * Return: 1 on success, else -1.
  */
-int write_user_history(info_t *user_info)
+int write_history(info_t *info)
 {
-	ssize_t file_descriptor;
-	char *file_path = get_user_history_file(user_info);
-	list_t *history_node = NULL;
+	ssize_t fd;
+	char *filename = get_history_file(info);
+	list_t *node = NULL;
 
-	if (!file_path)
+	if (!filename)
 		return (-1);
 
-	file_descriptor = open(file_path, O_CREAT | O_TRUNC | O_RDWR, 0644);
-	free(file_path);
-	if (file_descriptor == -1)
+	fd = open(filename, O_CREAT | O_TRUNC | O_RDWR, 0644);
+	free(filename);
+
+	if (fd == -1)
 		return (-1);
-	for (history_node = user_info->history; history_node;
-			history_node = history_node->next)
+
+	for (node = info->history; node; node = node->next)
 	{
-		_putsfd(history_node->str, file_descriptor);
-		_putfd('\n', file_descriptor);
+		_putsfd(node->str, fd);
+		_putfd('\n', fd);
 	}
-	_putfd(BUF_FLUSH, file_descriptor);
-	close(file_descriptor);
+
+	_putfd(BUF_FLUSH, fd);
+	close(fd);
+
 	return (1);
 }
 
 /**
- * read_user_history - Read the user's shell history from a file.
- * @infos: Parameter struct containing user-specific information
+ * read_history - Read command history from a file.
+ * @info: Pointer to the parameter struct.
  *
- * This function reads the user's shell history from a file and populates
- * the history list.
- *
- * Return: The new history count on success, 0 on failure.
+ * Return: Histcount on success, 0 otherwise.
  */
-int read_user_history(info_t *infos)
+int read_history(info_t *info)
 {
-	int a, last_index = 0, line_count = 0;
-	ssize_t file_descriptor, read_length, file_size = 0;
-	struct stat file_stats;
-	char *buffer = NULL, *file_path = get_user_history_file(infos);
+	int i, last = 0, linecount = 0;
+	ssize_t fd, rdlen, fsize = 0;
+	struct stat st;
+	char *buf = NULL, *filename = get_history_file(info);
 
-	if (!file_path)
+	if (!filename)
 		return (0);
-
-	file_descriptor = open(file_path, O_RDONLY);
-	free(file_path);
-	if (file_descriptor == -1)
+	fd = open(filename, O_RDONLY);
+	free(filename);
+	if (fd == -1)
 		return (0);
-	if (!fstat(file_descriptor, &file_stats))
-		file_size = file_stats.st_size;
-	if (file_size < 2)
+	if (!fstat(fd, &st))
+		fsize = st.st_size;
+	if (fsize < 2)
 		return (0);
-	buffer = malloc(sizeof(char) * (file_size + 1));
-	if (!buffer)
+	buf = malloc(sizeof(char) * (fsize + 1));
+	if (!buf)
 		return (0);
-	read_length = read(file_descriptor, buffer, file_size);
-	buffer[file_size] = 0;
-	if (read_length <= 0)
-		return (free(buffer), 0);
-	close(file_descriptor);
-	for (a = 0; a < file_size; a++)
-		if (buffer[a] == '\n')
+	rdlen = read(fd, buf, fsize);
+	buf[fsize] = '\0';
+	if (rdlen <= 0)
+		return (free(buf), 0);
+	close(fd);
+	for (i = 0; i < fsize; i++)
+		if (buf[i] == '\n')
 		{
-			buffer[a] = 0;
-			build_history_list(infos, buffer + last_index,
-					line_count++);
-			last_index = a + 1;
+			buf[i] = '\0';
+			build_history_list(info, buf + last, linecount++);
+			last = i + 1;
 		}
-	if (last_index != a)
-		build_history_list(infos, buffer + last_index, line_count++);
-	free(buffer);
-	infos->histcount = line_count;
-	while (infos->histcount-- >= HIST_MAX)
-		delete_node_at_index(&(infos->history), 0);
-	renumber_history(infos);
-	return (infos->histcount);
+	if (last != i)
+		build_history_list(info, buf + last, linecount++);
+	free(buf);
+	info->histcount = linecount;
+	while (info->histcount-- >= HIST_MAX)
+		delete_node_at_index(&(info->history), 0);
+
+	renumber_history(info);
+	return (info->histcount);
 }
 
 /**
- * add_to_user_history_list - Add an entry to the user's history linked list.
- * @infos:  Parameter struct containing user-specific information.
- * @buffer: Buffer containing the command history.
- * @line_count: The history line count (hist_count).
- *
- * This function adds an entry to the user's history linked list.
+ * build_history_list - Add an entry to the history linked list.
+ * @info: Pointer to the parameter struct.
+ * @buf: Buffer containing the history entry.
+ * @linecount: The history line count.
  *
  * Return: Always 0.
  */
-int add_to_user_history_list(info_t *infos, char *buffer, int line_count)
+int build_history_list(info_t *info, char *buf, int linecount)
 {
 	list_t *node = NULL;
 
-	if (infos->history)
-		node = infos->history;
-	add_node_end(&node, buffer, line_count);
+	if (info->history)
+		node = info->history;
 
-	if (!infos->history)
-		infos->history = node;
+	add_node_end(&node, buf, linecount);
+
+	if (!info->history)
+		info->history = node;
+
 	return (0);
 }
 
 /**
- * renumber_user_history - Renumber the user's history linked list
- * after changes.
- * @infos: Parameter struct containing user-specific information.
+ * renumber_history - Renumber the history linked list after changes.
+ * @info: Pointer to the parameter struct.
  *
- * This function renumbers the user's history linked list after
- * changes have been made.
- *
- * Return: The new history count (hist_count).
+ * Return: The new histcount.
  */
-int renumber_user_history(info_t *infos)
+int renumber_history(info_t *info)
 {
-	list_t *node = infos->history;
-	int a = 0;
+	list_t *node = info->history;
+	int i = 0;
 
 	while (node)
 	{
-		node->num = a++;
+		node->num = i++;
 		node = node->next;
 	}
-	return (infos->histcount = a);
+
+	return (info->histcount = i);
 }
+
