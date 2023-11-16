@@ -1,53 +1,51 @@
 #include "my_shell.h"
 
 /**
- * main - entry point
- * @ac: arg count
- * @av: arg vector
- *
- * Return: 0 on success, 1 on error
+ * main - main__programs to be executed
+ * @argc: counting of argumen to be executed
+ * @argv: argum_var in the main function
+ * @_env: env_enviroment in the kernel
+ * Return: 0 or 1
  */
-
-int main(int ac, char **av)
+int main(int argc, char *argv[], char **_env)
 {
-	shellinfo_t info[] = { SHELL_INFO_INIT };
 
-	int fd = 2;
+	char *bel_cmd;
+	size_t bel_size;
+	int my_exitstatus;
+	size_t my_newlinepos;
+	(void)argv;
+	(void)argc;
 
-	asm ("mov %1, %0\n\t"
+	bel_cmd = NULL;
+	my_exitstatus = 0;
 
-		"add $3, %0"
-		: "=r" (fd)
-		: "r" (fd));
-
-	if (ac == 2)
+	while (1)
 	{
+		if (isatty(0) == 1)
+			my_prompt();
+		my_cmds(&bel_cmd, &bel_size);
 
-		fd = open(av[1], O_RDONLY);
-		if (fd == -1)
+		if (strcmp(bel_cmd, "exit") == 0)
 		{
-
-			if (errno == EACCES)
-				exit(126);
-			if (errno == ENOENT)
-			{
-				_eputs(av[0]);
-				_eputs(": 0: Can't open ");
-				_eputs(av[1]);
-				_eputchar('\n');
-				_eputchar(BUF_FLUSH);
-				exit(127);
-			}
-
-			return (EXIT_FAILURE);
+			break;
 		}
+		else if (strncmp(bel_cmd, "exit ", 5) == 0)
+		{
+			my_exitstatus = atoi(bel_cmd + 5);
+			break;
+		}
+		else if (strcmp(bel_cmd, "_env") == 0 || strcmp(bel_cmd, "printenv") == 0)
+			my_env(_env);
+		_execute(bel_cmd);
 
-		info->readfd = fd;
+		my_newlinepos = strcspn(bel_cmd, "\n");
+		if (my_newlinepos < bel_size)
+			bel_cmd[my_newlinepos] = '\0';
 
+		if (bel_cmd != NULL)
+			bel_cmd = NULL;
 	}
-	put_env_list(info);
-	_my_history(info);
-	hsh(info, av);
-	return (EXIT_SUCCESS);
 
+	return (my_exitstatus);
 }
