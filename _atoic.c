@@ -17,7 +17,8 @@ char **parse(char *str, char *d)
 	if (!d)
 		d = " ";
 	for (i = 0; str[i] != '\0'; i++)
-		if (!_delimete(str[i], d) && (_delimete(str[i + 1], d) || !str[i + 1]))
+		if (!_delimete(str[i], d) && (_delimete(str[i + 1], d)
+					|| !str[i + 1]))
 			numwords++;
 
 	if (numwords == 0)

@@ -42,27 +42,27 @@ int _my_cd(shellinfo_t *info)
 
 	s = getcwd(buffer, 1024);
 	if (!s)
-		_puts("TODO: >>getcwd bad emsg here<<\n");
+		_puts("TODO: >>getcwd failure emsg here<<\n");
 	if (!info->argv[1])
 	{
-		dir = get_env(info, "HOME=");
+		dir = my_get_env(info, "HOME=");
 		if (!dir)
 			chdir_ret = /* TODO: what should this be? */
-				chdir((dir = get_env(info, "PWD=")) ? dir : "/");
+				chdir((dir = my_get_env(info, "PWD=")) ? dir : "/");
 		else
 			chdir_ret = chdir(dir);
 	}
 	else if (_strcmp(info->argv[1], "-") == 0)
 	{
-		if (!get_env(info, "OLDPWD="))
+		if (!my_get_env(info, "OLDPWD="))
 		{
 			_puts(s);
 			_putchar('\n');
 			return (1);
 		}
-		_puts(get_env(info, "OLDPWD=")), _putchar('\n');
+		_puts(my_get_env(info, "OLDPWD=")), _putchar('\n');
 		chdir_ret = /* TODO: what should this be? */
-			chdir((dir = get_env(info, "OLDPWD=")) ? dir : "/");
+			chdir((dir = my_get_env(info, "OLDPWD=")) ? dir : "/");
 	}
 	else
 		chdir_ret = chdir(info->argv[1]);
@@ -73,7 +73,7 @@ int _my_cd(shellinfo_t *info)
 	}
 	else
 	{
-		_setenv(info, "OLDPWD", get_env(info, "PWD="));
+		_setenv(info, "OLDPWD", my_get_env(info, "PWD="));
 		_setenv(info, "PWD", getcwd(buffer, 1024));
 	}
 	return (0);
@@ -90,7 +90,7 @@ int _my_help(shellinfo_t *info)
 	char **arg_array;
 
 	arg_array = info->argv;
-	_puts("help call works. Function not yet add \n");
+	_puts("help call works. Function not yet implemented \n");
 	if (0)
 		_puts(*arg_array); /* temp att_unused workaround */
 	return (0);

@@ -38,7 +38,7 @@ int is_chain(shellinfo_t *info, char *buf, size_t *p)
 }
 
 /**
- * check_my_chain - checks we should continue chaining based on last status
+ * check_chain - checks we should continue chaining based on last status
  * @info: the parameter struct
  * @buf: the char buffer
  * @p: address of current position in buf
@@ -47,8 +47,7 @@ int is_chain(shellinfo_t *info, char *buf, size_t *p)
  *
  * Return: Void
  */
-void check_my_chain(shellinfo_t *info, char *buf, size_t *p,
-		size_t i, size_t len)
+void check_chain(shellinfo_t *info, char *buf, size_t *p, size_t i, size_t len)
 {
 	size_t j = *p;
 
@@ -73,12 +72,12 @@ void check_my_chain(shellinfo_t *info, char *buf, size_t *p,
 }
 
 /**
- * replace_my_alias - replaces an aliases in the tokenized string
+ * replace_alias - replaces an aliases in the tokenized string
  * @info: the parameter struct
  *
  * Return: 1 if replaced, 0 otherwise
  */
-int replace_my_alias(shellinfo_t *info)
+int replace_alias(shellinfo_t *info)
 {
 	int i;
 	list_t *node;
@@ -136,7 +135,7 @@ int replace_vars(shellinfo_t *info)
 				_strdupl(_strchr(node->str, '=') + 1));
 			continue;
 		}
-		replace_string(&info->argv[i], _strdup(""));
+		replace_string(&info->argv[i], _strdupl(""));
 
 	}
 	return (0);

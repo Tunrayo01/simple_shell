@@ -46,7 +46,7 @@ int main(int ac, char **av)
 
 	}
 	put_env_list(info);
-	read_history(info);
+	_my_history(info);
 	hsh(info, av);
 	return (EXIT_SUCCESS);
 

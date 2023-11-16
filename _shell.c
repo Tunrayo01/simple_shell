@@ -16,7 +16,7 @@ int hsh(shellinfo_t *info, char **av)
 	{
 		remove_info(info);
 		if (active(info))
-			_puts("Kolinz-Lumzy=>$ ");
+			_puts("Kolinz-Viola=>$ ");
 		_eputchar(BUF_FLUSH);
 		r = my_get_input(info);
 		if (r != -1)
@@ -30,7 +30,7 @@ int hsh(shellinfo_t *info, char **av)
 			_putchar('\n');
 		let_info(info, 0);
 	}
-	write_history(info);
+	_my_history(info);
 	let_info(info, 1);
 	if (!active(info) && info->status)
 		exit(info->status);
@@ -60,7 +60,7 @@ int find_builtin(shellinfo_t *info)
 		{"env", my_env},
 		{"help", _my_help},
 		{"history", _my_history},
-		{"setenv", _set_env},
+		{"setenv",  set_env},
 		{"unsetenv", _unset_env},
 		{"cd", _my_cd},
 		{"alias", _my_alias},
@@ -114,7 +114,7 @@ void find_cmd(shellinfo_t *info)
 		else if (*(info->arg) != '\n')
 		{
 			info->status = 127;
-			prints_error(info, "not seen\n");
+			prints_error(info, "not found\n");
 		}
 	}
 }
