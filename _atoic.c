@@ -1,102 +1,94 @@
 #include "my_shell.h"
 
 /**
- * parse_string - splits a string into words using a specified delimiter
- * @input_str: the input string
- * @delimiter: the delimiter string
- *Return: a pointer to an array of strings, or NULL on failure
+ * **parse - splits a string into words
+ * @str: the input string
+ * @d: the delimeter string
+ * Return: a pointer to an array of strings, or NULL on failure
  */
-char **parse_string(char *input_str, char *delimiter)
+
+char **parse(char *str, char *d)
 {
-	int i, j, k, m, num_words = 0;
-	char **result;
+	int i, j, k, m, numwords = 0;
+	char **s;
 
-	if (input_str == NULL || input_str[0] == '\0')
+	if (str == NULL || str[0] == 0)
 		return (NULL);
-	if (!delimiter)
-		delimiter = " ";
-	for (i = 0; input_str[i] != '\0'; i++)
-		if (!_is_delimiter(input_str[i], delimiter) && (_is_delimiter
-					(input_str[i + 1], delimiter) || !input_str[i + 1]))
-			num_words++;
-	if (num_words == 0)
-		return (NULL);
-	result = malloc((1 + num_words) * sizeof(char *));
-	if (!result)
-		return (NULL);
+	if (!d)
+		d = " ";
+	for (i = 0; str[i] != '\0'; i++)
+		if (!_delimete(str[i], d) && (_delimete(str[i + 1], d) || !str[i + 1]))
+			numwords++;
 
-	for (i = 0, j = 0; j < num_words; j++)
+	if (numwords == 0)
+		return (NULL);
+	s = malloc((1 + numwords) * sizeof(char *));
+	if (!s)
+		return (NULL);
+	for (i = 0, j = 0; j < numwords; j++)
 	{
-		while (_is_delimiter(input_str[i], delimiter))
+		while (_delimete(str[i], d))
 			i++;
-
 		k = 0;
-		while (!_is_delimiter(input_str[i + k], delimiter) && input_str[i + k])
+		while (!_delimete(str[i + k], d) && str[i + k])
 			k++;
-		result[j] = malloc((k + 1) * sizeof(char));
-		if (!result[j])
+		s[j] = malloc((k + 1) * sizeof(char));
+		if (!s[j])
 		{
 			for (k = 0; k < j; k++)
-				free(result[k]);
-			free(result);
+				free(s[k]);
+			free(s);
 			return (NULL);
 		}
 		for (m = 0; m < k; m++)
-			result[j][m] = input_str[i++];
-
-		result[j][m] = '\0';
+			s[j][m] = str[i++];
+		s[j][m] = 0;
 	}
-	result[j] = NULL;
-	return (result);
+	s[j] = NULL;
+	return (s);
 }
 
 /**
- * string_to_words - splits a string into words using a specified delimiter
- * @input_str: the input string
- * @delimiter: the delimiter character
- *
+ * **strtow2 - splits a string into words
+ * @str: the input string
+ * @d: the delimeter
  * Return: a pointer to an array of strings, or NULL on failure
  */
-char **string_to_words(char *input_str, char delimiter)
+char **strtow2(char *str, char d)
 {
-	int i, j, k, m, num_words = 0;
-	char **result;
+	int i, j, k, m, numwords = 0;
+	char **s;
 
-	if (input_str == NULL || input_str[0] == '\0')
+	if (str == NULL || str[0] == 0)
 		return (NULL);
-	for (i = 0; input_str[i] != '\0'; i++)
-		if ((input_str[i] != delimiter && input_str[i + 1] == delimiter) ||
-			(input_str[i] != delimiter && !input_str[i + 1]) ||
-			input_str[i + 1] == delimiter)
-			num_words++;
-		if (num_words == 0)
-			return (NULL);
-		result = malloc((1 + num_words) * sizeof(char *));
-	if (!result)
+	for (i = 0; str[i] != '\0'; i++)
+		if ((str[i] != d && str[i + 1] == d) ||
+		    (str[i] != d && !str[i + 1]) || str[i + 1] == d)
+			numwords++;
+	if (numwords == 0)
 		return (NULL);
-	for (i = 0, j = 0; j < num_words; j++)
+	s = malloc((1 + numwords) * sizeof(char *));
+	if (!s)
+		return (NULL);
+	for (i = 0, j = 0; j < numwords; j++)
 	{
-		while (input_str[i] == delimiter && input_str[i] != delimiter)
+		while (str[i] == d && str[i] != d)
 			i++;
-
 		k = 0;
-		while (input_str[i + k] != delimiter && input_str[i + k] &&
-				input_str[i + k] != delimiter)
+		while (str[i + k] != d && str[i + k] && str[i + k] != d)
 			k++;
-
-		result[j] = malloc((k + 1) * sizeof(char));
-		if (!result[j])
+		s[j] = malloc((k + 1) * sizeof(char));
+		if (!s[j])
 		{
 			for (k = 0; k < j; k++)
-				free(result[k]);
-			free(result);
+				free(s[k]);
+			free(s);
 			return (NULL);
 		}
 		for (m = 0; m < k; m++)
-			result[j][m] = input_str[i++];
-
-		result[j][m] = '\0';
+			s[j][m] = str[i++];
+		s[j][m] = 0;
 	}
-	result[j] = NULL;
-	return (result);
+	s[j] = NULL;
+	return (s);
 }

@@ -1,133 +1,131 @@
 #include "my_shell.h"
 
 /**
- * shell_loop - Main shell loop
- * @info_struct: Pointer to the parameter and return info struct
- * @args: Argument vector from main()
+ * hsh - main shell loop
+ * @info: the parameter & return info struct
+ * @av: the argument vector from main()
  *
  * Return: 0 on success, 1 on error, or error code
  */
-int shell_loop(info_t *info_struct, char **args)
+int hsh(shellinfo_t *info, char **av)
 {
-	ssize_t input_result = 0;
-	int builtin_result = 0;
+	ssize_t r = 0;
+	int builtin_ret = 0;
 
-	while (input_result != -1 && builtin_result != -2)
+	while (r != -1 && builtin_ret != -2)
 	{
-		clear_info(info_struct);
-		if (is_shell_active(info_struct))
-			_puts("MyShell=>$ ");
+		remove_info(info);
+		if (active(info))
+			_puts("Kolinz-Lumzy=>$ ");
 		_eputchar(BUF_FLUSH);
-		input_result = get_user_input(info_struct);
-		if (input_result != -1)
+		r = my_get_input(info);
+		if (r != -1)
 		{
-			set_info(info_struct, args);
-			builtin_result = find_builtin_command(info_struct);
-			if (builtin_result == -1)
-				find_shell_command(info_struct);
+			s_info(info, av);
+			builtin_ret = find_builtin(info);
+			if (builtin_ret == -1)
+				find_cmd(info);
 		}
-		else if (is_shell_active(info_struct))
+		else if (active(info))
 			_putchar('\n');
-		finalize_info(info_struct, 0);
+		let_info(info, 0);
 	}
-	write_history(info_struct);
-	finalize_info(info_struct, 1);
-	if (!is_shell_active(info_struct) && info_struct->status)
-		exit(info_struct->status);
-	if (builtin_result == -2)
+	write_history(info);
+	let_info(info, 1);
+	if (!active(info) && info->status)
+		exit(info->status);
+	if (builtin_ret == -2)
 	{
-		if (info_struct->err_num == -1)
-			exit(info_struct->status);
-		exit(info_struct->err_num);
+		if (info->err_num == -1)
+			exit(info->status);
+		exit(info->err_num);
 	}
-	return (builtin_result);
+	return (builtin_ret);
 }
 
 /**
- * find_builtin_command - Finds a builtin command
- * @info_struct: Pointer to the parameter and return info struct
+ * find_builtin - finds a builtin command
+ * @info: the parameter & return info struct
  *
  * Return: -1 if builtin not found,
- *         0 if builtin executed successfully,
- *         1 if builtin found but not successful,
- *         -2 if builtin signals exit()
+ *			0 if builtin executed successfully,
+ *			1 if builtin found but not successful,
+ *			-2 if builtin signals exit()
  */
-int find_builtin_command(info_t *info_struct)
+int find_builtin(shellinfo_t *info)
 {
-	int i, builtin_result = -1;
-	builtin_table builtin_table[] = {
-		{"exit", my_exit},
+	int i, built_in_ret = -1;
+	builtin_table builtintbl[] = {
+		{"exit", _my_exit},
 		{"env", my_env},
-		{"help", my_help},
-		{"history", my_history},
-		{"setenv", set_env},
-		{"unsetenv", unset_env},
-		{"cd", my_cd},
-		{"alias", my_alias},
+		{"help", _my_help},
+		{"history", _my_history},
+		{"setenv", _set_env},
+		{"unsetenv", _unset_env},
+		{"cd", _my_cd},
+		{"alias", _my_alias},
 		{NULL, NULL}
 	};
 
-	for (i = 0; builtin_table[i].type; i++)
-		if (_strcmp(info_struct->argv[0], builtin_table[i].type) == 0)
+	for (i = 0; builtintbl[i].type; i++)
+		if (_strcmp(info->argv[0], builtintbl[i].type) == 0)
 		{
-			info_struct->line_count++;
-			builtin_result = builtin_table[i].func(info_struct);
+			info->line_count++;
+			built_in_ret = builtintbl[i].func(info);
 			break;
 		}
-	return (builtin_result);
+	return (built_in_ret);
 }
 
 /**
- * find_shell_command - Finds a command in PATH
- * @info_struct: Pointer to the parameter and return info struct
+ * find_cmd - finds a command in PATH
+ * @info: the parameter & return info struct
  *
  * Return: void
  */
-void find_shell_command(info_t *info_struct)
+void find_cmd(shellinfo_t *info)
 {
 	char *path = NULL;
-	int i, arg_count;
+	int i, k;
 
-	info_struct->path = info_struct->argv[0];
-	if (info_struct->linecount_flag == 1)
+	info->path = info->argv[0];
+	if (info->linecount_flag == 1)
 	{
-		info_struct->line_count++;
-		info_struct->linecount_flag = 0;
+		info->line_count++;
+		info->linecount_flag = 0;
 	}
-	for (i = 0, arg_count = 0; info_struct->arg[i]; i++)
-		if (!_is_delimeter(info_struct->arg[i], " \t\n"))
-			arg_count++;
-	if (!arg_count)
+	for (i = 0, k = 0; info->arg[i]; i++)
+		if (!_delimete(info->arg[i], " \t\n"))
+			k++;
+	if (!k)
 		return;
 
-	path = find_command_path(info_struct, get_env(info_struct, "PATH="),
-			info_struct->argv[0]);
+	path = find_path(info, my_get_env(info, "PATH="), info->argv[0]);
 	if (path)
 	{
-		info_struct->path = path;
-		execute_command(info_struct);
+		info->path = path;
+		fork_cmd(info);
 	}
 	else
 	{
-		if ((is_shell_active(info_struct) || get_env(info_struct, "PATH=")
-				|| info_struct->argv[0][0] == '/') && is_shell_command
-				(info_struct, info_struct->argv[0]))
-			execute_command(info_struct);
-		else if (*(info_struct->arg) != '\n')
+		if ((active(info) || my_get_env(info, "PATH=")
+			|| info->argv[0][0] == '/') && _is_cmd(info, info->argv[0]))
+			fork_cmd(info);
+		else if (*(info->arg) != '\n')
 		{
-			info_struct->status = 127;
-			print_error_message(info_struct, "not found\n");
+			info->status = 127;
+			prints_error(info, "not seen\n");
 		}
 	}
 }
 
 /**
- * execute_command - Forks an exec thread to run a command
- * @info_struct: Pointer to the parameter and return info struct
+ * fork_cmd - forks a an exec thread to run cmd
+ * @info: the parameter & return info struct
  *
  * Return: void
  */
-void execute_command(info_t *info_struct)
+void fork_cmd(shellinfo_t *info)
 {
 	pid_t child_pid;
 
@@ -139,10 +137,9 @@ void execute_command(info_t *info_struct)
 	}
 	if (child_pid == 0)
 	{
-		if (execve(info_struct->path, info_struct->argv,
-					get_environ(info_struct)) == -1)
+		if (execve(info->path, info->argv, my_get_environ(info)) == -1)
 		{
-			finalize_info(info_struct, 1);
+			let_info(info, 1);
 			if (errno == EACCES)
 				exit(126);
 			exit(1);
@@ -150,12 +147,12 @@ void execute_command(info_t *info_struct)
 	}
 	else
 	{
-		wait(&(info_struct->status));
-		if (WIFEXITED(info_struct->status))
+		wait(&(info->status));
+		if (WIFEXITED(info->status))
 		{
-			info_struct->status = WEXITSTATUS(info_struct->status);
-			if (info_struct->status == 126)
-				print_error_message(info_struct, "Permission denied\n");
+			info->status = WEXITSTATUS(info->status);
+			if (info->status == 126)
+				prints_error(info, "Permission not allowed\n");
 		}
 	}
 }

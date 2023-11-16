@@ -1,72 +1,74 @@
 #include "my_shell.h"
 
 /**
- * is_shell_active - checks if the shell is in interactive mode
- * @info: Pointer to the ShellInfo structure
+ * active - returns true if shell is interactive mode
+ * @info: struct address
  *
  * Return: 1 if interactive mode, 0 otherwise
  */
-int is_shell_active(ShellInfo_t *info)
+int active(shellinfo_t *info)
 {
-	return (isatty(STDIN_FILENO) && info->read_file_descriptor <= 2);
+	return (isatty(STDIN_FILENO) && info->readfd <= 2);
 }
 
 /**
- * is_delimiter - checks if a character is a delimiter
- * @character: The character to check
- * @delimiters: The string of delimiters
- *
- * Return: 1 if the character is a delimiter, 0 otherwise
+ * _delimete - checks if character is a delimeter
+ * @c: the char to check
+ * @delim: the delimeter string
+ * Return: 1 if true, 0 if false
  */
-int is_delimiter(char character, char *delimiters)
+int _delimete(char c, char *delim)
 {
-	while (*delimiters)
-		if (*delimiters++ == character)
+	while (*delim)
+		if (*delim++ == c)
 			return (1);
 	return (0);
 }
 
 /**
- * is_alpha_character - checks if a character is alphabetic
- * @character: The character to check
- *
- * Return: 1 if the character is alphabetic, 0 otherwise
+ *_alpha_char - checks for alphabetic character
+ *@c: The character to input
+ *Return: 1 if c is alphabetic, 0 otherwise
  */
-int is_alpha_character(int character)
+
+int _alpha_char(int c)
 {
-	if ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z'))
+	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
 		return (1);
 	else
 		return (0);
 }
 
 /**
- * string_to_integer - converts a string to an integer
- * @str: The string to be converted
- *
- * Return: 0 if no numbers in the string, the converted number otherwise
+ *_atoic - converts a string to an integer
+ *@s: the string to be converted
+ *Return: 0 if no numbers in string, converted number otherwise
  */
-int string_to_integer(char *str)
-{
-	int i, sign = 1, flag = 0, result;
-	unsigned int output = 0;
 
-	for (i = 0; str[i] != '\0' && flag != 2; i++)
+int _atoic(char *s)
+{
+	int i, sign = 1, flag = 0, output;
+	unsigned int result = 0;
+
+	for (i = 0;  s[i] != '\0' && flag != 2; i++)
 	{
-		if (str[i] == '-')
+		if (s[i] == '-')
 			sign *= -1;
 
-		if (str[i] >= '0' && str[i] <= '9')
+		if (s[i] >= '0' && s[i] <= '9')
 		{
 			flag = 1;
-			output *= 10;
-			output += (str[i] - '0');
+			result *= 10;
+			result += (s[i] - '0');
 		}
 		else if (flag == 1)
 			flag = 2;
 	}
 
-	result = (sign == -1) ? -output : output;
+	if (sign == -1)
+		output = -result;
+	else
+		output = result;
 
-	return (result);
+	return (output);
 }
